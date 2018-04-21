@@ -16,34 +16,25 @@ class TestRidgeRegression(TestCase):
         cls.X = cls.stdscaler.transform(spam)
         cls.X_simple = StandardScaler().fit(spam[spam.columns[0:2]]).transform(spam[spam.columns[0:2]])
 
-    def test_objective(self):
-        r = RidgeRegression(0.1, self.X_simple, self.Y)
-        self.assertAlmostEqual(
-            r._objective(array([0.0, 0.0])),
-            r._objective_long_way(array([0.0, 0.0]))
-        )
 
     def test_gradient(self):
         r = RidgeRegression(0.1, self.X_simple, self.Y)
-        grad = r._grad(array([0.0, 0.0]))
-        grad_long = r._grad_long_way(array([0.0, 0.0]))
+        grad = r._grad(array([1.0, 1.0]))
+        grad_long = r._grad_long_way(array([1.0, 1.0]))
         for p in range(2):
             self.assertAlmostEqual(grad_long[p], grad[p])
 
-    # def test_fast_grad(self):
-    #     #r = RidgeRegression(0.1, self.X_simple, self.Y)
-    #     r = RidgeRegression(0.1, self.X, self.Y)
-    #     #r.estimate_init_stepsize()
-    #     beta, beta_hist, theta_hist, obj_hist = r.do_fastgrad(1, 0.001)
-    #     print(beta)
-    #     sklog = LogisticRegression(penalty='l2', C=1/0.1, fit_intercept=False).fit(self.X, self.Y)
-    #     self.assertAlmostEqual(sklog.coef_[0][0], beta[0])
-    #     self.assertAlmostEqual(sklog.coef_[0][1], beta[1])
+    def test_fast_grad(self):
+        r = RidgeRegression(0.1, self.X, self.Y)
+        beta, beta_hist, theta_hist, obj_hist = r.do_fastgrad(r.estimate_init_stepsize(), 0.001)
+        sklog = LogisticRegression(penalty='l2', C=1/0.1, fit_intercept=False).fit(self.X, self.Y)
+        self.assertAlmostEqual(sklog.coef_[0][0], beta[0])
+        self.assertAlmostEqual(sklog.coef_[0][1], beta[1])
 
     def test_grad_descent(self):
-        r = RidgeRegression(0.1, self.X_simple, self.Y)
-        #r = RidgeRegression(0.1, self.X, self.Y)
-        beta, beta_hist, obj_hist = r.do_grad_descent(1, 0.001)
-        sklog = LogisticRegression(penalty='l2', C=1/0.1, fit_intercept=False).fit(self.X_simple, self.Y)
+        r = RidgeRegression(0.1, self.X, self.Y)
+        beta, beta_hist, obj_hist = r.do_grad_descent(r.estimate_init_stepsize(), 0.001)
+        n,p = self.X.shape
+        sklog = LogisticRegression(penalty='l2', C=1/(0.1*n), fit_intercept=False).fit(self.X, self.Y)
         self.assertAlmostEqual(sklog.coef_[0][0], beta[0])
         self.assertAlmostEqual(sklog.coef_[0][1], beta[1])

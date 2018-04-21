@@ -10,10 +10,6 @@ class RidgeRegression:
 
     def _objective(self, beta):
         """Computes the objective function for a given set of betas"""
-        return log(1 + exp(-self.Y @ self.X.T @ beta)) + self.lamb*(norm(beta)**2)
-
-    def _objective_long_way(self, beta):
-        """Used to confirm _objective is working correctly"""
         likelihood = 0
         for i in range(self.n):
             likelihood += log(1 + exp(-self.Y[i] * self.X[:,i] @ beta))
@@ -57,7 +53,7 @@ class RidgeRegression:
         print('Max iterations of backtracking reached (%d)' % max_iter)
         return t
 
-    def do_grad_descent(self, init_stepsize, epsilon, max_iter=10):
+    def do_grad_descent(self, init_stepsize, epsilon, max_iter=1000):
         """Performs gradient descent and returns the final betas and two arrays, one history of betas and one history
         of the objective function over the optimization process."""
         beta = array([0.0] * self.p)
@@ -69,11 +65,10 @@ class RidgeRegression:
         grad_beta = self._grad(beta)
         grad_beta_norm = norm(grad_beta)
         while grad_beta_norm > epsilon:
-            print("grad norm: %f > %f (%f)" % (grad_beta_norm, epsilon, self._objective(beta)))
+            if i % 100 == 0:
+                print("%d: grad norm: %f > %f (%f)" % (i, grad_beta_norm, epsilon, self._objective(beta)))
             if i > max_iter:
-                #raise ValueError("Gradient descent failed to converge within %d iterations" % max_iter)
-                print("Gradient descent failed to converge within %d iterations" % max_iter)
-                break
+                raise ValueError("Gradient descent failed to converge within %d iterations" % max_iter)
             t = self._backtrack(beta, t or init_stepsize)
             beta = beta - (t * grad_beta)
             grad_beta = self._grad(beta)
@@ -83,7 +78,7 @@ class RidgeRegression:
             i += 1
         return beta, beta_hist, objective_hist
 
-    def do_fastgrad(self, init_stepsize, epsilon, max_iter=20):
+    def do_fastgrad(self, init_stepsize, epsilon, max_iter=1000):
         """Performs fast gradient descent and returns the final betas and three arrays: one history of betas, one
         history of thetas, and one history of the objective function over the optimization process.."""
         beta = array([0.0] * self.p)
@@ -95,10 +90,10 @@ class RidgeRegression:
         i = 0
         grad_beta = self._grad(beta)
         while norm(grad_beta) > epsilon:
-            print("%f > %f (objective: %f)" % (norm(grad_beta), epsilon, self._objective(beta)))
+            if i % 100 == 0:
+                print("%d: %f > %f (objective: %f)" % (i, norm(grad_beta), epsilon, self._objective(beta)))
             if i > max_iter:
-                print("Fast gradient failed to converge in %d iterations" % max_iter)
-                break
+                raise ValueError("Fast gradient failed to converge in %d iterations" % max_iter)
             t = self._backtrack(beta, init_stepsize)
             grad_theta = self._grad(theta)
             prev_beta = beta
