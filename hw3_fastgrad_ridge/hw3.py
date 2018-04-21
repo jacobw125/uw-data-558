@@ -1,4 +1,4 @@
-from numpy import ndarray, array, exp, log, diag, identity, apply_along_axis
+from numpy import ndarray, array, exp, log, diag, identity, zeros
 from numpy.linalg import norm, eigh
 
 
@@ -8,20 +8,22 @@ class RidgeRegression:
         self.X, self.Y = X.T, array(Y)  # note the transpose here to put it in terms matching class
         self.p, self.n = self.X.shape
 
-    def _objective_long_way(self, beta):
+    def _objective(self, beta):
         """Computes the objective function for a given set of betas"""
+        return 1/self.n * sum(log(1 + exp(-self.Y * (self.X.T @ beta)))) + self.lamb*(beta.T @ beta)
+
+    def _objective_long_way(self, beta):
         likelihood = 0
         for i in range(self.n):
             likelihood += log(1 + exp(-self.Y[i] * self.X[:,i] @ beta))
         return 1/self.n * likelihood + self.lamb*(norm(beta)**2)
 
-    def _objective(self, beta):
-        """Computes the objective function for a given set of betas"""
-        likelihood = apply_along_axis(lambda x: log(1 + exp(x)), 0, -self.Y @ diag(self.X.T @ beta)).sum()
-        return 1/self.n * likelihood + self.lamb*(norm(beta)**2)
-
     def _grad(self, beta):
-        """Computes the objective function gradient for a given set of betas"""
+        p_vector = 1/(1+exp(-self.Y * (self.X.T @ beta)))
+        P = identity(self.n) - diag(p_vector)
+        return (2*self.lamb*beta) - (1/self.n * self.X @ P @ self.Y)
+
+    def _grad_long_way(self, beta):
         p_terms = list()
         for i in range(self.n):
            p_terms.append(
@@ -32,15 +34,6 @@ class RidgeRegression:
         P = identity(self.n) - diag(p_terms)
         return (2*self.lamb*beta) - (1/self.n * self.X @ P @ self.Y)
 
-    def _grad_long_way(self, beta):
-        """Used to confirm _grad is working correctly"""
-        diff_sum = array([0.0] * self.p)
-        for i in range(self.n):
-            x, y = self.X[:, i], self.Y[i]
-            exp_term = exp(-y * x.T @ beta)
-            diff_sum = diff_sum + ( y*x * (exp_term  / (1 + exp_term)) )
-        return 2*self.lamb*beta - 1/self.n * diff_sum
-
     def _backtrack(self, betas, init_t=1, alpha=0.5, beta=0.5, max_iter=1000):
         """Calculates the optimal stepsize via backtracking, where we first assess the objective at
         betas + grad_betas*init_t, then reduce t until we find a point where the objective function decreases
@@ -49,9 +42,7 @@ class RidgeRegression:
         grad_betas = self._grad(betas)
         norm_grad_betas = norm(grad_betas)
         for i in range(max_iter):
-            a = self._objective(betas - t*grad_betas)
-            b = (self._objective(betas) - alpha*t*(norm_grad_betas**2))
-            if a >= b:
+            if self._objective(betas - t*grad_betas) >= (self._objective(betas) - alpha*t*(norm_grad_betas**2)):
                 t *= beta
             else:
                 return t
@@ -62,7 +53,7 @@ class RidgeRegression:
         """Performs gradient descent and returns the final betas and two arrays, one history of betas and one history
         of the objective function over the optimization process."""
         print("Starting gradient descent with initial stepsize %f and epsilon %f" % (init_stepsize, epsilon))
-        beta = array([0.0] * self.p)
+        beta = zeros(self.p)
         beta_hist = [beta]
         objective_hist = [self._objective(beta)]
 
@@ -84,12 +75,12 @@ class RidgeRegression:
             i += 1
         return beta, beta_hist, objective_hist
 
-    def do_fastgrad(self, init_stepsize, epsilon, max_iter=100):  # still really slow for some reason
+    def do_fastgrad_old(self, init_stepsize, epsilon, max_iter=100):  # still really slow for some reason
         """Performs fast gradient descent and returns the final betas and three arrays: one history of betas, one
         history of thetas, and one history of the objective function over the optimization process.."""
         print("Starting fast gradient descent with initial stepsize %f and epsilon %f" % (init_stepsize, epsilon))
-        beta = array([0.0] * self.p)
-        theta = beta
+        beta = zeros(self.p)
+        theta = zeros(self.p)
         beta_hist = [beta]
         theta_hist = [theta]
         objective_hist = [self._objective(beta)]
@@ -110,6 +101,36 @@ class RidgeRegression:
             theta = i/(i+3)*(beta - prev_beta)
             theta_hist.append(theta)
             grad_beta = self._grad(beta)
+            objective_hist.append(self._objective(beta))
+            i += 1
+        return beta, beta_hist, theta_hist, objective_hist
+
+    def do_fastgrad(self, init_stepsize, epsilon, max_iter=100):  # still really slow for some reason
+        """Performs fast gradient descent and returns the final betas and three arrays: one history of betas, one
+        history of thetas, and one history of the objective function over the optimization process.."""
+        print("Starting fast gradient descent with initial stepsize %f and epsilon %f" % (init_stepsize, epsilon))
+        beta = zeros(self.p)
+        theta = zeros(self.p)
+        beta_hist = [beta]
+        theta_hist = [theta]
+        objective_hist = [self._objective(beta)]
+
+        i = 0
+        t = init_stepsize
+        grad_beta = self._grad(beta)
+        while norm(grad_beta) > epsilon:
+            if i % 50 == 0:
+                print("%d: %f > %f (objective: %f)" % (i, norm(grad_beta), epsilon, self._objective(beta)))
+            if i > max_iter:
+                raise ValueError("Fast gradient failed to converge in %d iterations" % max_iter)
+            t = self._backtrack(beta, init_t=t)
+            beta_new = theta - t*self._grad(theta)
+            theta = beta_new + i/(i+3)*(beta_new - beta)
+            beta = beta_new
+            grad_beta = self._grad(beta_new)
+
+            beta_hist.append(beta)
+            theta_hist.append(theta)
             objective_hist.append(self._objective(beta))
             i += 1
         return beta, beta_hist, theta_hist, objective_hist
