@@ -40,23 +40,21 @@ class RidgeRegression:
             diff_sum = diff_sum + ( y*x * (exp_term  / (1 + exp_term)) )
         return 2*self.lamb*beta - 1/self.n * diff_sum
 
-    def _backtrack(self, betas, init_t=1, alpha=0.2, beta=0.5, max_iter=100):
+    def _backtrack(self, betas, init_t=5, alpha=0.5, beta=0.5, max_iter=1000):
         """Calculates the optimal stepsize via backtracking, where we first assess the objective at
         betas + grad_betas*init_t, then reduce t until we find a point where the objective function decreases
         by 'enough' to return t."""
         t = init_t
         grad_betas = self._grad(betas)
         norm_grad_betas = norm(grad_betas)
-        t_history = [t]
         for i in range(max_iter):
-            a, b = self._objective(betas - t*grad_betas), (self._objective(betas) - alpha*t*(norm_grad_betas**2))
+            a = self._objective(betas - t*grad_betas)
+            b = (self._objective(betas) - alpha*t*(norm_grad_betas**2))
             if a >= b:
                 t *= beta
-                t_history.append(t)
             else:
                 return t
         print('Max iterations of backtracking reached (%d)' % max_iter)
-        print(t_history)
         return t
 
     def do_grad_descent(self, init_stepsize, epsilon, max_iter=10):
@@ -66,7 +64,8 @@ class RidgeRegression:
         beta_hist = [beta]
         objective_hist = [self._objective(beta)]
 
-        i, t = 0, None
+        i = 0
+        t = None
         grad_beta = self._grad(beta)
         grad_beta_norm = norm(grad_beta)
         while grad_beta_norm > epsilon:
@@ -79,8 +78,8 @@ class RidgeRegression:
             beta = beta - (t * grad_beta)
             grad_beta = self._grad(beta)
             grad_beta_norm = norm(grad_beta)
-            #beta_hist.append(beta)
-            #objective_hist.append(self._objective(beta))
+            beta_hist.append(beta)
+            objective_hist.append(self._objective(beta))
             i += 1
         return beta, beta_hist, objective_hist
 

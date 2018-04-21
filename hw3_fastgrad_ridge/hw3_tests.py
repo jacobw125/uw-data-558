@@ -18,11 +18,6 @@ class TestRidgeRegression(TestCase):
 
     def test_objective(self):
         r = RidgeRegression(0.1, self.X_simple, self.Y)
-        n, p = self.X.shape
-        self.assertAlmostEqual(
-            0.69314718055994529,
-            r._objective(array([0.0, 0.0]))
-        )
         self.assertAlmostEqual(
             r._objective(array([0.0, 0.0])),
             r._objective_long_way(array([0.0, 0.0]))
@@ -30,16 +25,6 @@ class TestRidgeRegression(TestCase):
 
     def test_gradient(self):
         r = RidgeRegression(0.1, self.X_simple, self.Y)
-        grad = list(r._grad(array([0.0, 0.0])))
-        self.assertEqual(2, len(grad))
-        self.assertAlmostEqual(
-            -0.061670642732909037,
-            grad[0]
-        )
-        self.assertAlmostEqual(
-            0.0147685870655,
-            grad[1]
-        )
         grad = r._grad(array([0.0, 0.0]))
         grad_long = r._grad_long_way(array([0.0, 0.0]))
         for p in range(2):
