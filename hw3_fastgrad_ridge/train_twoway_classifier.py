@@ -14,6 +14,6 @@ betas, _, _ = r.do_grad_descent(r.estimate_init_stepsize(), 0.01)
 
 
 predictions = expit(X @ betas)
-prediction_bools = array([1 if x > 0.5 else 0 for x in predictions])
+prediction_bools = array([1 if x > 0.5 else -1 for x in predictions])
 save("betas.npy", betas)
 save("prediction_bools.npy", prediction_bools)
