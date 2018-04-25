@@ -1,6 +1,6 @@
 from numpy import ndarray, array, exp, log, diag, identity, zeros
 from numpy.linalg import norm, eigh
-
+from scipy.special import expit
 
 class LogisticRegression:
     def __init__(self, lamb, X, Y):
@@ -139,6 +139,10 @@ class LogisticRegression:
                 objective_hist.append(self._objective(beta))
             i += 1
         return beta, beta_hist, theta_hist, objective_hist
+
+    @classmethod
+    def predict(cls, beta, X):
+        return expit(X.T @ beta)
 
     def estimate_init_stepsize(self):
         eigenvalues, eigenvectors = eigh(1/self.n * self.X @ self.X.T)
