@@ -105,21 +105,26 @@ class LogisticRegression:
             i += 1
         return beta, beta_hist, theta_hist, objective_hist
 
-    def do_fastgrad(self, init_stepsize, epsilon, max_iter=100):  # still really slow for some reason
+    def do_fastgrad(self, epsilon, init_stepsize=None, max_iter=100, optimize=True):
         """Performs fast gradient descent and returns the final betas and three arrays: one history of betas, one
         history of thetas, and one history of the objective function over the optimization process.."""
+
+        if init_stepsize is None:
+            init_stepsize = self.estimate_init_stepsize()
+
         print("Starting fast gradient descent with initial stepsize %f and epsilon %f" % (init_stepsize, epsilon))
         beta = zeros(self.p)
         theta = zeros(self.p)
+
         beta_hist = [beta]
         theta_hist = [theta]
-        objective_hist = [self._objective(beta)]
+        objective_hist = [self._objective(beta)] if not optimize else None
 
         i = 0
         t = init_stepsize
         grad_beta = self._grad(beta)
         while norm(grad_beta) > epsilon:
-            if i % 50 == 0:
+            if i % 50 == 0 and not optimize:
                 print("%d: %f > %f (objective: %f)" % (i, norm(grad_beta), epsilon, self._objective(beta)))
             if i > max_iter:
                 raise ValueError("Fast gradient failed to converge in %d iterations" % max_iter)
@@ -129,9 +134,10 @@ class LogisticRegression:
             beta = beta_new
             grad_beta = self._grad(beta_new)
 
-            beta_hist.append(beta)
-            theta_hist.append(theta)
-            objective_hist.append(self._objective(beta))
+            if not optimize:
+                beta_hist.append(beta)
+                theta_hist.append(theta)
+                objective_hist.append(self._objective(beta))
             i += 1
         return beta, beta_hist, theta_hist, objective_hist
 
