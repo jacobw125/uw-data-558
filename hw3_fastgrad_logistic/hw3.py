@@ -34,12 +34,11 @@ class LogisticRegression:
         P = identity(self.n) - diag(p_terms)
         return (2*self.lamb*beta) - (1/self.n * self.X @ P @ self.Y)
 
-    def _backtrack(self, betas, init_t=1, alpha=0.5, beta=0.5, max_iter=1000):
+    def _backtrack(self, betas, grad_betas, init_t=1, alpha=0.5, beta=0.5, max_iter=1000):
         """Calculates the optimal stepsize via backtracking, where we first assess the objective at
         betas + grad_betas*init_t, then reduce t until we find a point where the objective function decreases
         by 'enough' to return t."""
         t = init_t
-        grad_betas = self._grad(betas)
         norm_grad_betas = norm(grad_betas)
         for i in range(max_iter):
             if self._objective(betas - t*grad_betas) >= (self._objective(betas) - alpha*t*(norm_grad_betas**2)):
@@ -66,7 +65,7 @@ class LogisticRegression:
                 print("%d: grad norm: %f > %f (%f)" % (i, grad_beta_norm, epsilon, self._objective(beta)))
             if i > max_iter:
                 raise ValueError("Gradient descent failed to converge within %d iterations" % max_iter)
-            t = self._backtrack(beta, init_t=init_stepsize)
+            t = self._backtrack(beta, grad_beta, init_t=init_stepsize)
             beta = beta - (t * grad_beta)
             grad_beta = self._grad(beta)
             grad_beta_norm = norm(grad_beta)
@@ -93,7 +92,7 @@ class LogisticRegression:
                 print("%d: %f > %f (objective: %f)" % (i, norm(grad_beta), epsilon, self._objective(beta)))
             if i > max_iter:
                 raise ValueError("Fast gradient failed to converge in %d iterations" % max_iter)
-            t = self._backtrack(beta, init_t=init_stepsize)
+            t = self._backtrack(beta, grad_beta, init_t=init_stepsize)
             grad_theta = self._grad(theta)
             prev_beta = beta
             beta = theta - t*grad_theta
@@ -128,7 +127,7 @@ class LogisticRegression:
                 print("%d: %f > %f (objective: %f)" % (i, norm(grad_beta), epsilon, self._objective(beta)))
             if i > max_iter:
                 raise ValueError("Fast gradient failed to converge in %d iterations" % max_iter)
-            t = self._backtrack(beta, init_t=t)
+            t = self._backtrack(beta, grad_beta, init_t=t)
             beta_new = theta - t*self._grad(theta)
             theta = beta_new + i/(i+3)*(beta_new - beta)
             beta = beta_new
