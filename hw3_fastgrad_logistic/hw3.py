@@ -142,7 +142,7 @@ class LogisticRegression:
 
     @classmethod
     def predict(cls, beta, X):
-        return expit(X.T @ beta)
+        return expit(X @ beta)
 
     def estimate_init_stepsize(self):
         eigenvalues, eigenvectors = eigh(1/self.n * self.X @ self.X.T)
