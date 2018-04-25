@@ -2,7 +2,7 @@ from numpy import ndarray, array, exp, log, diag, identity, zeros
 from numpy.linalg import norm, eigh
 
 
-class RidgeRegression:
+class LogisticRegression:
     def __init__(self, lamb, X, Y):
         self.lamb = lamb  # regularization parameter, assumed constant for the entire model fitting process
         self.X, self.Y = X.T, array(Y)  # note the transpose here to put it in terms matching class
