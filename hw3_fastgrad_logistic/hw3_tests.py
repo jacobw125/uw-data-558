@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from numpy import array
 from sklearn.linear_model import LogisticRegression
 
-class TestRidgeRegression(TestCase):
+class TestLogisticRegression(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_data = read_csv("hw3_fastgrad_ridge/spam.csv")
