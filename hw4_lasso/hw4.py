@@ -30,9 +30,9 @@ class LASSORegression:
         X_j = self.x_j_lookup[j]
         R_without_j = (self.Y - (beta_without_j.T @ X_without_j))
         c_j = 2/self.n * (X_j @ R_without_j)
-        a_j = 2 * sum(X_j**2)
         if abs(c_j) <= self.lamb:
             return 0
+        a_j = 2 * sum(X_j**2)
         if c_j < -self.lamb:
             return (c_j + self.lamb) / (a_j / self.n)
         elif c_j > self.lamb:
