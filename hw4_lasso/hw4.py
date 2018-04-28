@@ -1,7 +1,8 @@
 from numpy import array, abs, delete, copy
 from numpy.linalg import norm
 from numpy.random import normal, shuffle
-from multiprocessing import Pool
+from numba import jit
+
 
 class LASSORegression:
     def __init__(self, lamb, X, Y):
@@ -11,15 +12,18 @@ class LASSORegression:
         self.n, self.d = X.shape
         self.betas = normal(loc=0.00001, scale=0.0000001, size=self.d)  # init betas to small nonzero numbers
 
+    @jit
     def _objective(self):
         """The objective function"""
         return 1/self.n * norm(self.Y - (self.X.T @ self.betas))**2 + self.lamb * abs(self.betas).sum()
 
+    @jit
     def _thresholding(self, x):
         if abs(x) <= self.lamb:
             return 0
         return (x - self.lamb) if x >= self.lamb else (x + self.lamb)
 
+    @jit
     def _partial_min_solution(self, j):
         """Solution to the partial minimization function"""
         beta_j = self.betas[j]
