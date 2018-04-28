@@ -25,17 +25,18 @@ class LASSORegression:
     @jit
     def _partial_min_solution(self, j):
         """Solution to the partial minimization function"""
-        beta_j = self.betas[j]
-        if beta_j == 0: return 0
         beta_without_j = delete(self.betas, j, axis=0)
         X_without_j = self.x_without_j_lookup[j]
         X_j = self.x_j_lookup[j]
-        R_without_j = (self.Y - (X_without_j.T @ beta_without_j))
-        indicator = 2/self.n * (X_j @ R_without_j)
-        if abs(indicator) <= self.lamb: return 0  # slight optimization to do this before the Z_j step
-        Z_j = sum(X_j**2)
-        thresholding = (indicator - self.lamb) if indicator >= self.lamb else (indicator + self.lamb)
-        return thresholding / (2/self.n * Z_j)
+        R_without_j = (self.Y - (beta_without_j.T @ X_without_j))
+        c_j = 2/self.n * (X_j @ R_without_j)
+        a_j = 2 * sum(X_j**2)
+        if abs(c_j) <= self.lamb:
+            return 0
+        if c_j < -self.lamb:
+            return (c_j + self.lamb) / (a_j / self.n)
+        elif c_j > self.lamb:
+            return (c_j - self.lamb) / (a_j / self.n)
 
     def cyclic_coord_descent(self, max_cycles=10, verbose=False, optimize=False):
         self.betas = normal(loc=0.00001, scale=0.0000001, size=self.d)  # init betas to small nonzero numbers
