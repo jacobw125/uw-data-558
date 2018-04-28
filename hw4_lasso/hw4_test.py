@@ -20,7 +20,7 @@ class TestLassoRegression(TestCase):
         new_b0 = r._partial_min_solution(r.d-1)
         print(new_b0)
 
-    def test_parallel_cd(self):
+    def test_cd(self):
         r = LASSORegression(0.1, self.X, self.Y)
-        betas = r.parallel_random_coordinate_descent(max_cycles=100)
+        betas = r.random_coord_descent(max_cycles=50)
         print(betas)
