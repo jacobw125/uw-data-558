@@ -11,11 +11,6 @@ class LASSORegression:
         self.Y = array(Y)
         self.n, self.d = X.shape
         self.betas = normal(loc=0.00001, scale=0.0000001, size=self.d)  # init betas to small nonzero numbers
-        self.x_without_j_lookup = {}
-        self.x_j_lookup = {}
-        for j in range(self.d):  # cache values that won't change over the course of coordinate descent
-            self.x_without_j_lookup[j] = delete(self.X, j, axis=0)  # remove the jth column
-            self.x_j_lookup[j] = self.X[j]
 
     @jit
     def _objective(self):
@@ -26,8 +21,8 @@ class LASSORegression:
     def _partial_min_solution(self, j):
         """Solution to the partial minimization function"""
         beta_without_j = delete(self.betas, j, axis=0)
-        X_without_j = self.x_without_j_lookup[j]
-        X_j = self.x_j_lookup[j]
+        X_without_j = delete(self.X, j, axis=0)
+        X_j = self.X[j]
         R_without_j = (self.Y - (beta_without_j.T @ X_without_j))
         c_j = 2/self.n * (X_j @ R_without_j)
         if abs(c_j) <= self.lamb:
