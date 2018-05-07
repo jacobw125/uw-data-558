@@ -22,7 +22,8 @@ class HingeLossLinearSVM:
         for class_i, class_j in self.classifier_combos:
             print("Training linear classifier for classes: {}, {}".format(class_i, class_j))
             these_rows = [y in (class_i, class_j) for y in self.Y]
-            beta, beta_hist, _, _ = HingeLossClassifier(self.lambduh, self.X[these_rows], self.Y[these_rows]).train(
+            adjusted_Y = [1 if y == class_i else -1 for y in self.Y[these_rows]]
+            beta, beta_hist, _, _ = HingeLossClassifier(self.lambduh, self.X[these_rows], adjusted_Y).train(
                 epsilon,
                 **train_options
             )
@@ -39,5 +40,5 @@ class HingeLossLinearSVM:
         for class_i, class_j in self.classifier_combos:
             classifications = HingeLossClassifier.classify(X, beta[(class_i, class_j)])
             preds[idx] = [class_i if t else class_j for t in classifications]
-        modes = preds.mode(axis="columns")  # returns a dataframe for cases when there are multiple modes
-        return modes # Todo deal with that
+            idx += 1
+        return preds.mode(axis="columns")[0]
