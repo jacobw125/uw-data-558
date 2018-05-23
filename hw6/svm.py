@@ -73,6 +73,7 @@ def train_one_vs_rest(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwarg
 def _predict_class(classes):
     global _newX
     global _coefs
+    print("Predicting %s vs %s" % classes)
     classifications = Classifier.classify(_newX, _coefs[(classes[0], classes[1])])
     return [classes[0] if t else classes[1] for t in classifications]
 
