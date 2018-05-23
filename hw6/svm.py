@@ -75,7 +75,7 @@ def _predict_class(classes):
     global _coefs
     print("Predicting %s vs %s" % classes)
     classifications = Classifier.classify(_newX, _coefs[(classes[0], classes[1])])
-    return [classes[0] if t else classes[1] for t in classifications]
+    return array([classes[0] if t else classes[1] for t in classifications])
 
 
 def predict(newX=None, n_jobs=1):
@@ -86,7 +86,7 @@ def predict(newX=None, n_jobs=1):
     _newX = _X if newX is None else newX
     with Pool(n_jobs) as pool:
         predictions = pool.map(_predict_class, _classifier_combos)
-    preds = DataFrame(predictions, columns=[val for val, _ in _classifier_combos])
+    preds = DataFrame(dict(zip(["%s vs %s" % (c1, c2) for c1, c2 in _classifier_combos], predictions)))
     return preds.mode(axis="columns")[0]
 
 
