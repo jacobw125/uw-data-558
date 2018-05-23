@@ -9,6 +9,7 @@ X, Y, epislon = None, None, 0
 _train_args = None
 _coefs = None
 _coefs_ovr = None
+_newX = None
 
 
 def train_model(classes):
@@ -69,26 +70,30 @@ def train_one_vs_rest(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwarg
     return _coefs_ovr
 
 
-def predict(newX=None, custom_beta=None):
-    global _X
+def _predict_class(classes):
+    global _newX
     global _coefs
+    classifications = Classifier.classify(X, _coefs[(classes[0], classes[1])])
+    return [classes[0] if t else classes[1] for t in classifications]
+
+
+def predict(newX=None, n_jobs=1):
+    global _X
+    global _Y
+    global _newX
     global _classifier_combos
-    X = _X if newX is None else newX
-    beta = _coefs if custom_beta is None else custom_beta
-    preds = DataFrame()
-    idx = 0
-    for class_i, class_j in _classifier_combos:
-        classifications = Classifier.classify(X, beta[(class_i, class_j)])
-        preds[idx] = [class_i if t else class_j for t in classifications]
-        idx += 1
+    _newX = _X if newX is None else newX
+    with Pool(n_jobs) as pool:
+        predictions = pool.map(_predict_class, _classifier_combos)
+    preds = DataFrame(predictions, columns=range(0, max(_Y)))
     return preds.mode(axis="columns")[0]
 
 
 def predict_ovr(newX=None):
     global _X
     global _Y
-    global _coefs_ovr
-    X = _X if newX is None else newX
+    global _newX
+    _newX = _X if newX is None else newX
     preds = DataFrame()
     classes = unique(_Y)
     idx = 0
