@@ -86,7 +86,7 @@ def predict(newX=None, n_jobs=1):
     _newX = _X if newX is None else newX
     with Pool(n_jobs) as pool:
         predictions = pool.map(_predict_class, _classifier_combos)
-    preds = DataFrame(predictions, columns=range(0, max(_Y)))
+    preds = DataFrame(predictions, columns=[val for val, _ in _classifier_combos])
     return preds.mode(axis="columns")[0]
 
 
