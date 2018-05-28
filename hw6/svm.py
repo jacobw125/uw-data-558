@@ -134,4 +134,4 @@ def predict_ovr(newX=None, n_jobs=1):
     with Pool(n_jobs) as pool:
         preds = pool.map(_predict_class_ovr, classes)
     preds = DataFrame(dict(zip(classes, preds)))
-    return array([int(x) for x in preds.idmax(axis="columns")[0]])
+    return array([int(x) for x in preds.idxmax(axis="columns")[0]])
