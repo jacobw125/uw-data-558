@@ -1,6 +1,6 @@
 from .classifier import Classifier
 from pandas import DataFrame
-from numpy import unique, array, sort as np_sort, random, concatenate, vstack
+from numpy import unique, array, sort as np_sort, random, ravel, vstack
 from multiprocessing import Pool
 
 _classifier_combos = None
@@ -44,7 +44,7 @@ def train_ovr_model(target_class):
     x_in_class = _X[is_class]
     y_in_class = _Y[is_class]
     new_X = vstack((x_out_of_class, x_in_class))
-    new_y = [1 if y == target_class else -1 for y in concatenate(y_out_of_class, y_in_class)]
+    new_y = [1 if y == target_class else -1 for y in ravel(vstack((y_out_of_class, y_in_class)))]
     beta = _classifier_generator(new_X, new_y).train(_epsilon, **_train_args)
     return beta
 
