@@ -34,7 +34,6 @@ def train_ovr_model(target_class):
     global _classifier_generator
     global _epsilon
     global _train_args
-    print("Training OVR classifier for class {}".format(target_class))
     is_class = array([y == target_class for y in _Y])
     x_out_of_class = _X[~is_class]
     y_out_of_class = _Y[~is_class]
@@ -45,6 +44,9 @@ def train_ovr_model(target_class):
     y_in_class = _Y[is_class]
     new_X = vstack((x_out_of_class, x_in_class))
     new_y = [1 if y == target_class else -1 for y in ravel(vstack((y_out_of_class, y_in_class)))]
+    print("Training OVR classifier for class {} with {} in-class and out-of-class rows".format(
+        target_class, sum(is_class), sum(is_class)
+    ))
     beta = _classifier_generator(new_X, new_y).train(_epsilon, **_train_args)
     return beta
 
