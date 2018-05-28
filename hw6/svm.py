@@ -1,6 +1,6 @@
 from .classifier import Classifier
 from pandas import DataFrame
-from numpy import unique, array, sort as np_sort
+from numpy import unique, array, sort as np_sort, random, concatenate
 from multiprocessing import Pool
 
 _classifier_combos = None
@@ -35,8 +35,17 @@ def train_ovr_model(target_class):
     global _epsilon
     global _train_args
     print("Training OVR classifier for class {}".format(target_class))
-    new_y = [1 if y == target_class else -1 for y in _Y]
-    beta = _classifier_generator(_X, new_y).train(_epsilon, **_train_args)
+    is_class = array([y == target_class for y in _Y])
+    x_out_of_class = _X[~is_class]
+    y_out_of_class = _Y[~is_class]
+    random_out_of_class_subset = random.choice(range(len(x_out_of_class)), size=is_class.sum())
+    x_out_of_class = x_out_of_class[random_out_of_class_subset]
+    y_out_of_class = y_out_of_class[random_out_of_class_subset]
+    x_in_class = _X[is_class]
+    y_in_class = _Y[is_class]
+    new_X = concatenate(x_out_of_class, x_in_class)
+    new_y = [1 if y == target_class else -1 for y in concatenate(y_out_of_class, y_in_class)]
+    beta = _classifier_generator(new_X, new_y).train(_epsilon, **_train_args)
     return beta
 
 
