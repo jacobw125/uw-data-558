@@ -1,6 +1,6 @@
 from .classifier import Classifier
 from pandas import DataFrame
-from numpy import unique, array
+from numpy import unique, array, sort as np_sort
 from multiprocessing import Pool
 
 _classifier_combos = None
@@ -28,6 +28,18 @@ def train_model(classes):
     return beta
 
 
+def train_ovr_model(target_class):
+    global _X
+    global _Y
+    global _classifier_generator
+    global _epsilon
+    global _train_args
+    print("Training OVR classifier for class {}".format(target_class))
+    new_y = [1 if y == target_class else -1 for y in _Y]
+    beta = _classifier_generator(_X, new_y).train(_epsilon, **_train_args)
+    return beta
+
+
 def train_one_vs_one(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwargs):
     global _classifier_combos
     global _classifier_generator
@@ -41,7 +53,7 @@ def train_one_vs_one(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwargs
     global _train_args
     _train_args = kwargs
     global _coefs
-    classes = unique(Y)
+    classes = np_sort(unique(Y))
     _classifier_combos = list()
     n_classes = len(classes)
     for i in range(n_classes):
@@ -55,18 +67,22 @@ def train_one_vs_one(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwargs
 
 
 def train_one_vs_rest(make_classifier_function, X, Y, epsilon, n_jobs=1, **kwargs):
+    global _classifier_combos
+    global _classifier_generator
+    _classifier_generator = make_classifier_function
+    global _X
+    _X = X
+    global _Y
+    _Y = Y
+    global _epsilon
+    _epsilon = epsilon
+    global _train_args
+    _train_args = kwargs
     global _coefs_ovr
-    classes = unique(Y)
-    trained_model = dict()
-    for c in classes:
-        y_tmp = array([1 if y == c else -1 for y in Y])
-        print("Training OVR linear classifier for class: {}".format(c))
-        beta, beta_hist, _, _ = make_classifier_function(X, y_tmp).train(
-            epsilon,
-            **kwargs
-        )
-        trained_model[c] = beta
-    _coefs_ovr = trained_model
+    classes = np_sort(unique(Y))
+    with Pool(n_jobs) as pool:
+        betas = pool.map(train_ovr_model, classes)
+    _coefs_ovr = dict(zip(classes, betas))
     return _coefs_ovr
 
 
@@ -90,15 +106,21 @@ def predict(newX=None, n_jobs=1):
     return preds.mode(axis="columns")[0]
 
 
-def predict_ovr(newX=None):
+def _predict_class_ovr(target_class):
+    global _newX
+    global _coefs_ovr
+    print("Predicting OVR for %s" % target_class)
+    return _newX @ _coefs_ovr[target_class]
+
+
+def predict_ovr(newX=None, n_jobs=1):
     global _X
     global _Y
     global _newX
+    global _coefs_ovr
     _newX = _X if newX is None else newX
-    preds = DataFrame()
-    classes = unique(_Y)
-    idx = 0
-    for c in classes:
-        preds[idx] = Classifier.classify(X, _coefs_ovr[c])
-        idx += 1
-    return array([classes[i] for i in preds.idxmax(axis="columns")])
+    classes = np_sort(unique(_Y))
+    with Pool(n_jobs) as pool:
+        preds = pool.map(_predict_class_ovr, classes)
+    preds = DataFrame(dict(zip(classes, preds)))
+    return array([int(x) for x in preds.idmax(axis="columns")[0]])
