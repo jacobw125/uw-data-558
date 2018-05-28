@@ -47,7 +47,7 @@ def train_ovr_model(target_class):
     print("Training OVR classifier for class {} with {} in-class and out-of-class rows".format(
         target_class, sum(is_class), sum(is_class)
     ))
-    beta = _classifier_generator(new_X, new_y).train(_epsilon, **_train_args)
+    beta, beta_hist, _, _ = _classifier_generator(new_X, new_y).train(_epsilon, **_train_args)
     return beta
 
 
