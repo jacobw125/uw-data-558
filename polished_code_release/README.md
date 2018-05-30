@@ -19,11 +19,9 @@ This approach is discussed in much more detail in this paper:
 
 There are probably some assumptions about the convexity of the problem space with respect to each block that I have not examined.
 
-##### Disclaimer
-Because of a Python restriction on sharing locks between processes, this is a multi*threaded* implementation instead of a multi*process* one. Due to time limitations, this was where I decided to stop - the concurrency benefit is still there and my intention is that this code can serve as a proof of concept.
-
 # Code and examples
-* demo.py: Simulates data, trains a model on that data, then compares the coefficients to Scikit learn's Lasso method. Then fits a model on the Spam dataset and predicts / assesses the holdout set classification accuracy.
-* profiling.py: Profiles the fit time on a high dimensional dataset with different concurrency settings.
+* **block_cd_Lasso.py**: My implementation.
+* **block_cd_lasso_threads_only.py**: An attempt I made that uses threads only instead of processes. Currently returning slightly incorrect results due to a subtle concurrency bug I didn't have time track down.
+* **demo.py**: Simulates data, trains a model on that data, then compares the coefficients to Scikit learn's Lasso method. Then fits a model on the Spam dataset and predicts / assesses the holdout set classification accuracy.
 
 Data are packaged with the repository.
