@@ -12,11 +12,6 @@ Under random block coordinate descent, we shuffle the coordinates and then split
 
 My intuition is that as the number of blocks increases, this algorithm requires more iterations to converge compared to the regular coordinate descent, because at the time of each coordinate update, fewer of the prior coordinates will have been updated.
 
-This approach is discussed in much more detail in this paper:
-
-[Xu, Yangyang and Yin, Wotao: A Block Coordinate Descent Method for Regularized Multiconvex Optimization
- with Applications to Nonnegative Tensor Factorization and Completion](http://www.math.ucla.edu/~wotaoyin/papers/pdf/Xu%20and%20Yin%20-%202013%20-%20A%20Block%20Coordinate%20Descent%20Method%20for%20Regularized.pdf)
-
 There are probably some assumptions about the convexity of the problem space with respect to each block that I have not examined.
 
 # Code and examples
