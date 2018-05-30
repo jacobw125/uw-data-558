@@ -15,7 +15,7 @@ My intuition is that as the number of blocks increases, this algorithm requires 
 There are probably some assumptions about the convexity of the problem space with respect to each block that I have not examined.
 
 # Code and examples
-* **block_cd_Lasso.py**: My implementation.
+* **block_cd_lasso.py**: My implementation.
 * **block_cd_lasso_threads_only.py**: An attempt I made that uses threads only instead of processes. Currently returning slightly incorrect results due to a subtle concurrency bug I didn't have time track down.
 * **demo.py**: Simulates data, trains a model on that data, then compares the coefficients to Scikit learn's Lasso method. Then fits a model on the Spam dataset and predicts / assesses the holdout set classification accuracy.
 
