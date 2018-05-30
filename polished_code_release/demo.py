@@ -35,7 +35,7 @@ stdscaler = StandardScaler().fit(spam)
 X = stdscaler.transform(spam)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
 
-model = BlockCDLasso(1e-4, X_train, y_train)#, sgd_samp=1)
+model = BlockCDLasso(1e-4, X_train, y_train)
 betas, beta_hist, objective_hist = model.fit(max_cycles=60, n_blocks=4, pool_size=4, optimize=False)
 print("Objective history: %s" % objective_hist)
 predictions = np.array([1 if x > 0 else -1 for x in BlockCDLasso.predict(X_test, betas)])
