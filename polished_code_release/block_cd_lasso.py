@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+#from numba import jit
 from threading import Lock
 from concurrent.futures import ThreadPoolExecutor
 
@@ -34,14 +34,14 @@ class BlockCDLasso:
                     b[j] = np.copy(self.blocks[block][i])
         return np.array(b)
 
-    @jit
+    #@jit
     def _objective(self):
         """The objective function."""
         likelihood = np.linalg.norm(self.Y - (self.X.T @ self.betas))**2  # standard sum square residuals
         penalty = np.abs(self.betas).sum()  # L1-norm penalty
         return 1/self.n * likelihood + self.lam * penalty
 
-    @jit
+    #@jit
     def _partial_min_solution(self, j):
         """This returns the solution to the partial minimization function with respect to the jth coordinate"""
         beta_without_j = np.delete(self.betas, j, axis=0)

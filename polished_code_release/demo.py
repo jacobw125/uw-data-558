@@ -1,4 +1,4 @@
-from block_cd_lasso import BlockCDLasso
+from block_cd_lasso_threaded import BlockCDLasso
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -6,18 +6,19 @@ from sklearn.linear_model import Lasso
 from pandas import read_csv
 
 print("Demo: Regression on simulated data")
-cov_matrix = np.identity(10)   # Simulate 10 columns of data with correlations
+cov_matrix = np.identity(200)   # Simulate 200 columns of data with correlations
 cov_matrix += 0.8
-for i in range(10): cov_matrix[i,i] = 1
+for i in range(200): cov_matrix[i,i] = 1
 sim_data = np.vstack(np.random.multivariate_normal(
-    mean=np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+    mean=np.array(range(0, 200)),
     cov=cov_matrix,
-    size=(1000, 10)
+    size=(1000, 200)
 ))
-X = StandardScaler().fit_transform(sim_data[:, 0:9])
-y = sim_data[:, 9]
-model = BlockCDLasso(0.001, X, y)
-betas, beta_hist, objective_hist = model.fit(max_cycles=50, n_blocks=2, pool_size=2, optimize=False)
+X = StandardScaler().fit_transform(sim_data[:, 0:199])
+y = sim_data[:, 199]
+model = BlockCDLasso(0.01, X, y)
+print("Starting coordinate descent")
+betas, beta_hist, objective_hist = model.fit(max_cycles=100, n_blocks=10, pool_size=10, optimize=False)
 print("Objective descent history: %s\n" % objective_hist)
 
 skmodel = Lasso(alpha=0.001 * 1000, fit_intercept=False)
